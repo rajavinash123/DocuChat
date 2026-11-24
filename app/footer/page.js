@@ -1,11 +1,5 @@
-import React from 'react'
+import Footer from "../components/Footer";
 
-const footer = () => {
-  return (
-   <footer>
-    <h1> builing chatwithdoc using genai </h1>
-   </footer>
-  )
+export default function FooterPage() {
+  return <Footer />;
 }
-
-export default footer

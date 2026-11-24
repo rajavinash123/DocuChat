@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Footer from "./components/Footer";
 import {
   Plus, Upload, FileText, ArrowUp, Bot, Trash2, Menu, Sparkles, X,
   LoaderCircle, CheckCircle2, AlertCircle, Copy, Check, Square, RotateCcw,
@@ -12,10 +13,12 @@ const SUGGESTIONS = [
   "Generate important questions",
   "Find key points from this PDF",
 ];
-const MAX_MB = 20;
+const MAX_MB = 50;
+const HISTORY_STORAGE_KEY = "docuchat:conversation:v1";
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -55,10 +58,56 @@ export default function Home() {
     toastTimer.current = setTimeout(() => setToast(null), 4000);
   }, []);
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (saved) {
+        const history = JSON.parse(saved);
+        if (Array.isArray(history.messages)) {
+          // Restore browser-only state after hydration to avoid an SSR mismatch.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setMessages(
+            history.messages.filter(
+              (message) =>
+                message &&
+                (message.role === "user" || message.role === "assistant") &&
+                typeof message.content === "string"
+            )
+          );
+        }
+        if (
+          history.file &&
+          typeof history.file.name === "string" &&
+          typeof history.file.chunks === "number"
+        ) {
+          setFile(history.file);
+        }
+      }
+    } catch {
+      notify("error", "Could not restore saved chat history.");
+    }
+    setHistoryLoaded(true);
+  }, [notify]);
+
+  useEffect(() => {
+    if (!historyLoaded) return;
+    try {
+      window.localStorage.setItem(
+        HISTORY_STORAGE_KEY,
+        JSON.stringify({ messages, file })
+      );
+    } catch (error) {
+      console.error("Could not save chat history in this browser:", error);
+    }
+  }, [messages, file, historyLoaded, notify]);
+
   // PDF upload
   const handleUpload = async (selected) => {
     if (!selected || uploading) return;
-    if (selected.type !== "application/pdf") {
+    if (
+      selected.type !== "application/pdf" &&
+      !selected.name.toLowerCase().endsWith(".pdf")
+    ) {
       return notify("error", "That file is not a PDF. Choose a .pdf file.");
     }
     if (selected.size > MAX_MB * 1024 * 1024) {
@@ -69,8 +118,10 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", selected);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Upload failed (${res.status})`);
+      }
       setFile({ name: selected.name, chunks: data.totalChunks });
       notify("success", `${selected.name} is ready. Ask a question.`);
       textRef.current?.focus();
@@ -165,6 +216,7 @@ export default function Home() {
   const ready = !!file;
 
   return (
+    <>
     <main
       className="flex h-dvh bg-slate-50 text-slate-800 overflow-hidden"
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -191,7 +243,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="bg-teal-600 p-2 rounded-xl"><Sparkles size={20} /></div>
             <div>
-              <h1 className="font-semibold text-lg leading-tight">DocuMind AI</h1>
+              <h1 className="font-semibold text-lg leading-tight">DocuChat </h1>
               <p className="text-xs text-slate-400">Ask questions about your PDFs</p>
             </div>
           </div>
@@ -531,5 +583,7 @@ export default function Home() {
         }}
       />
     </main>
+    <Footer />
+    </>
   );
 }

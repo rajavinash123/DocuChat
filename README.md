@@ -16,6 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Environment variables
+
+Create a `.env.local` file in the `chat-with-pdf` project directory and configure:
+
+- `GOOGLE_API_KEY` for PDF embeddings
+- `QDRANT_URL` for the Qdrant vector database
+- `QDRANT_API_KEY` if your Qdrant instance requires authentication
+- `GROQ_API_KEY` for document chat
+
+Restart the development server after changing environment variables.
+
+The current conversation and uploaded document label are saved in this browser and restored after refresh. Starting a new chat clears the saved conversation.
+
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

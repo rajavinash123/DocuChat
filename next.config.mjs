@@ -6,6 +6,7 @@ const nextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
   turbopack: {
     rules: {
       "*.css": {

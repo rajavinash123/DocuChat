@@ -1,0 +1,8 @@
+DocuChat - AI-Powered PDF Question Answering
+
+Technologies: Next.js, React, Tailwind CSS, LangChain, Google Gemini Embeddings, Groq, Qdrant, pdf-parse
+
+- Built a web app that lets users upload PDFs and ask questions about their contents.
+- Implemented a retrieval-augmented generation (RAG) pipeline that extracts and splits PDF text, stores embeddings in Qdrant, and generates context-grounded answers with source references.
+- Developed a responsive chat interface with drag-and-drop uploads, upload progress and error feedback, and copy, retry, and stop controls.
+- Persisted the current conversation and uploaded document label in browser storage so they are restored after refresh.
